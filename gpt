@@ -30,25 +30,26 @@ openai.api_key = config['DEFAULT']['API_KEY']
 # Parse command-line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--include-stdout", help="include stdout data in the chat completion", action="store_true")
-parser.add_argument("--include-git-status", help="include git status output in the chat completion", action="store_true")
+parser.add_argument("--aicommit", help="create a git commit message", action="store_true")
 parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
 parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
 args = parser.parse_args()
 
-user_message = input("Enter your message: ")
+commit_message = "Here is a git commit please create a commit message for it and follow the standards for doing so\n"
+user_message = input("Enter your additional instructions: ")
 
 # Read from stdout if --include-stdout was provided
 stdout_data = ""
 if args.include_stdout:
     stdout_data = sys.stdin.read()
 
-# Get git status if --include-git-status was provided
+# Get git status if --aicommit was provided
 git_status = ""
-if args.include_git_status:
+if args.aicommit:
     git_status = subprocess.check_output(['git', 'status', '-v']).decode()
 
 # Prepare the message to be sent
-message_content = user_message + stdout_data + git_status
+message_content = commit_message + git_status + stdout_data + user_message
 
 # Confirm before sending the message
 print("\nHere is the message to be sent:\n")
@@ -61,19 +62,22 @@ if confirm.lower() != 'y':
     print("Operation cancelled.")
     sys.exit()
 
-# Create a chat completion with user message and stdout data
-chat_completion = openai.ChatCompletion.create(
-    model=args.model, 
-    messages=[{"role": "user", "content": message_content}],
-    temperature=args.temperature
-)
+while True:
+    # Create a chat completion with user message and stdout data
+    chat_completion = openai.ChatCompletion.create(
+        model=args.model, 
+        messages=[{"role": "user", "content": message_content}],
+        temperature=args.temperature
+    )
 
-# Print the chat completion
-print(chat_completion.choices[0].message.content)
+    # Print the chat completion
+    print(chat_completion.choices[0].message.content)
 
-# Update the dotfile with the current options
-config['DEFAULT']['MODEL'] = args.model
-config['DEFAULT']['TEMPERATURE'] = str(args.temperature)
-with open(dotfile_path, 'w') as dotfile:
-    config.write(dotfile)
+    # Check if user is satisfied with the response
+    satisfied = input("\nAre you happy with the response? [y/n]: ")
+    if satisfied.lower() == 'y':
+        break
+    else:
+        print("Resending the request with model 'gpt-4'.")
+        args.model = 'gpt-4'
 
