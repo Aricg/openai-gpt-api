@@ -9,12 +9,15 @@ import configparser
 import subprocess
 
 # Define the dotfile path
-dotfile_path = os.path.join(os.getcwd(), '.openai_config')
+home_dir = os.path.expanduser("~")  # This will get the path to the home directory
+dotfile_path = os.path.join(home_dir, '.openai_config')
 
 # Load the dotfile if it exists, otherwise create a new one
 config = configparser.ConfigParser()
 if os.path.exists(dotfile_path):
     config.read(dotfile_path)
+
+
 else:
     config['DEFAULT'] = {
         'API_KEY': 'sk-your-api-key',
