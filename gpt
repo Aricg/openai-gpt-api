@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+# Import required libraries
+import openai
+import sys
+import argparse
+import os
+import configparser
+import subprocess
+
+# Define the dotfile path
+dotfile_path = os.path.join(os.getcwd(), '.openai_config')
+
+# Load the dotfile if it exists, otherwise create a new one
+config = configparser.ConfigParser()
+if os.path.exists(dotfile_path):
+    config.read(dotfile_path)
+else:
+    config['DEFAULT'] = {
+        'API_KEY': 'sk-your-api-key',
+        'MODEL': 'gpt-3.5-turbo',
+        'TEMPERATURE': '0.5'
+    }
+    with open(dotfile_path, 'w') as dotfile:
+        config.write(dotfile)
+
+# Set your OpenAI API key
+openai.api_key = config['DEFAULT']['API_KEY']
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("--include-stdout", help="include stdout data in the chat completion", action="store_true")
+parser.add_argument("--include-git-status", help="include git status output in the chat completion", action="store_true")
+parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
+parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
+args = parser.parse_args()
+
+user_message = input("Enter your message: ")
+
+# Read from stdout if --include-stdout was provided
+stdout_data = ""
+if args.include_stdout:
+    stdout_data = sys.stdin.read()
+
+# Get git status if --include-git-status was provided
+git_status = ""
+if args.include_git_status:
+    git_status = subprocess.check_output(['git', 'status', '-v']).decode()
+
+# Prepare the message to be sent
+message_content = user_message + stdout_data + git_status
+
+# Confirm before sending the message
+print("\nHere is the message to be sent:\n")
+print(message_content)
+confirm = input("\nDo you want to send this message? [y/n/edit]: ")
+if confirm.lower() == 'edit':
+    message_content = input("\nPlease edit your message: ")
+    confirm = input("\nDo you want to send this message? [y/n]: ")
+if confirm.lower() != 'y':
+    print("Operation cancelled.")
+    sys.exit()
+
+# Create a chat completion with user message and stdout data
+chat_completion = openai.ChatCompletion.create(
+    model=args.model, 
+    messages=[{"role": "user", "content": message_content}],
+    temperature=args.temperature
+)
+
+# Print the chat completion
+print(chat_completion.choices[0].message.content)
+
+# Update the dotfile with the current options
+config['DEFAULT']['MODEL'] = args.model
+config['DEFAULT']['TEMPERATURE'] = str(args.temperature)
+with open(dotfile_path, 'w') as dotfile:
+    config.write(dotfile)
+
