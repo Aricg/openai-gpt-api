@@ -35,7 +35,7 @@ parser.add_argument("--model", help="model to use for the chat completion", defa
 parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
 args = parser.parse_args()
 
-commit_message = "Here is a git commit please create a commit message for it and follow the standards for doing so\n"
+commit_message = "Act as a programmer who is writing a commit message, following best practices, standards and conventions for a good git commit message\n"
 user_message = input("Enter your additional instructions: ")
 
 # Read from stdout if --include-stdout was provided
@@ -49,11 +49,18 @@ if args.aicommit:
     git_status = subprocess.check_output(['git', 'status', '-v']).decode()
 
 # Prepare the message to be sent
-message_content = commit_message + git_status + stdout_data + user_message
+additonal_instructions="the committer also wants to you be aware of this additional instruction: "
+delimeter = "```"
+if user_message:
+    message_content = commit_message + delimeter + git_status + stdout_data + delimeter + additonal_instructions + user_message
+else:
+    message_content = commit_message + delimeter + git_status + stdout_data + delimeter
 
 # Confirm before sending the message
 print("\nHere is the message to be sent:\n")
+print("\n#######################################################################\n")
 print(message_content)
+print("\n#######################################################################\n")
 confirm = input("\nDo you want to send this message? [y/n/edit]: ")
 if confirm.lower() == 'edit':
     message_content = input("\nPlease edit your message: ")
