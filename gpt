@@ -19,7 +19,7 @@ if os.path.exists(dotfile_path):
 
 
 else:
-    print("config file required as ~/.openai_config")
+    print("config file required at ~/.openai_config")
     exit(1)
 
 # Set your OpenAI API key
@@ -76,10 +76,10 @@ while True:
     )
 
     # Print the chat completion
-    print(chat_completion.choices[0].message.content)
+    print(chat_completion.choices[0].message.content) # type: ignore
 
     # Check if user is satisfied with the response
-    satisfied = input("\nAre you happy with the response? [y/n]: ")
+    satisfied = input("\nAre you happy with the response, or resend with gpt4? [y/n]: ")
     if satisfied.lower() == 'y':
         break
     else:
