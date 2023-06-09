@@ -33,8 +33,11 @@ parser.add_argument("--model", help="model to use for the chat completion", defa
 parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
 args = parser.parse_args()
 
-#commit_message = "Act as a programmer who is writing a commit message, following best practices, standards and conventions for a good git commit message\n"
-commit_message = "Given the changes in the provided Git diff, generate a commit message. The commit message should start with a concise title in the imperative mood, summarizing the changes made. If necessary, follow the title with a more detailed explanation of what changes were made and why. Remember to keep the title under 50 characters and the body under 100 characters if included.\n"
+commit_message = "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification.\
+        The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
+        If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
+        Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n"
+
 user_message = input("Enter your additional instructions: ")
 
 # Read from stdout if --include-stdout was provided
