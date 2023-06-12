@@ -1,92 +1,104 @@
 #!/usr/bin/env python
 
-# Import required libraries
 import openai
 import sys
 import argparse
 import os
 import configparser
 import subprocess
+from tempfile import NamedTemporaryFile
 
-# Define the dotfile path
-home_dir = os.path.expanduser("~")  # This will get the path to the home directory
+home_dir = os.path.expanduser("~")
 dotfile_path = os.path.join(home_dir, '.openai_config')
 
-# Load the dotfile if it exists, otherwise create a new one
 config = configparser.ConfigParser()
 if os.path.exists(dotfile_path):
     config.read(dotfile_path)
-
-
 else:
     print("config file required at ~/.openai_config")
     exit(1)
 
-# Set your OpenAI API key
 openai.api_key = config['DEFAULT']['API_KEY']
 
-# Parse command-line arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--include-stdout", help="include stdout data in the chat completion", action="store_true")
-parser.add_argument("--aicommit", help="create a git commit message", action="store_true")
-parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
-parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
-args = parser.parse_args()
+commands = {
+    "git_commit": ['git', 'status', '-v'],
+    # Add more commands here
+}
 
-commit_message = "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification.\
-        The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
-        If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
-        Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n"
+prompts = {
+    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification....",
+    # Add more prompts here
+}
 
-user_message = input("Enter your additional instructions: ")
+def get_input_or_file_input():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--file", help="Provide a filename to use as input")
+    group.add_argument("--command-output", choices=list(commands.keys()), help="Choose a command to run and use its output")
+    parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
+    parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
+    args = parser.parse_args()
 
-# Read from stdout if --include-stdout was provided
-stdout_data = ""
-if args.include_stdout:
-    stdout_data = sys.stdin.read()
+    if args.file:
+        with open(args.file, "r") as file:
+            content = file.read()
+    else:  # command output
+        content = subprocess.check_output(commands[args.command_output]).decode()
 
-# Get git status if --aicommit was provided
-git_status = ""
-if args.aicommit:
-    git_status = subprocess.check_output(['git', 'status', '-v']).decode()
+    return content, args
 
-# Prepare the message to be sent
-additonal_instructions="the committer also wants to you be aware of this additional instruction: "
-delimeter = "```"
-if user_message:
-    message_content = commit_message + delimeter + git_status + stdout_data + delimeter + additonal_instructions + user_message
-else:
-    message_content = commit_message + delimeter + git_status + stdout_data + delimeter
+def select_prompt():
+    prompt_names = list(prompts.keys())
+    print("Select a prompt:")
+    for i, name in enumerate(prompt_names):
+        print(f"{i}. {name}")
+    selection = int(input("Enter the number of your selection: "))
+    return prompts[prompt_names[selection]]
 
-# Confirm before sending the message
-print("\nHere is the message to be sent:\n")
-print("\n#######################################################################\n")
-print(message_content)
-print("\n#######################################################################\n")
-confirm = input("\nDo you want to send this message? [y/n/edit]: ")
-if confirm.lower() == 'edit':
-    message_content = input("\nPlease edit your message: ")
-    confirm = input("\nDo you want to send this message? [y/n]: ")
-if confirm.lower() != 'y':
-    print("Operation cancelled.")
-    sys.exit()
+def edit_message_in_vim(message):
+    with NamedTemporaryFile(suffix=".tmp") as tf:
+        tf.write(message.encode())
+        tf.flush()
+        subprocess.call(["vim", tf.name])
+        tf.seek(0)
+        edited_message = tf.read().decode()
+    return edited_message
 
-while True:
-    # Create a chat completion with user message and stdout data
-    chat_completion = openai.ChatCompletion.create(
-        model=args.model, 
-        messages=[{"role": "user", "content": message_content}],
-        temperature=args.temperature
-    )
+def main():
+    content, args = get_input_or_file_input()
+    prompt = select_prompt()
 
-    # Print the chat completion
-    print(chat_completion.choices[0].message.content) # type: ignore
+    message_content = prompt + content
 
-    # Check if user is satisfied with the response
-    satisfied = input("\nAre you happy with the response, or resend with gpt4? [y/n]: ")
-    if satisfied.lower() == 'y':
-        break
-    else:
-        print("Resending the request with model 'gpt-4'.")
-        args.model = 'gpt-4'
+    print("\nHere is the message to be sent:\n")
+    print("\n#######################################################################\n")
+    print(message_content)
+    print("\n#######################################################################\n")
+
+    confirm = input("\nDo you want to send this message? [y/n/edit]: ")
+    if confirm.lower() == 'edit':
+        message_content = edit_message_in_vim(message_content)
+        confirm = input("\nDo you want to send this message? [y/n]: ")
+
+    if confirm.lower() != 'y':
+        print("Operation cancelled.")
+        sys.exit()
+
+    while True:
+        chat_completion = openai.ChatCompletion.create(
+            model=args.model, 
+            messages=[{"role": "user", "content": message_content}],
+            temperature=args.temperature
+        )
+        print(chat_completion.choices[0].message.content)  # type: ignore
+
+        satisfied = input("\nAre you happy with the response? \"No\" to resend with gpt4 [y/n]: ")
+        if satisfied.lower() == 'y':
+            break
+        else:
+            print("Resending the request with model 'gpt-4'.")
+            args.model = 'gpt-4'
+
+if __name__ == "__main__":
+    main()
 
