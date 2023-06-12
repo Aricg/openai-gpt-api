@@ -26,7 +26,12 @@ commands = {
 }
 
 prompts = {
-    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification....",
+    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification.\
+        The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
+        If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
+        Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n",
+
+
     # Add more prompts here
 }
 
@@ -59,7 +64,7 @@ def edit_message_in_vim(message):
     with NamedTemporaryFile(suffix=".tmp") as tf:
         tf.write(message.encode())
         tf.flush()
-        subprocess.call(["vim", tf.name])
+        subprocess.call(["lvim", tf.name])
         tf.seek(0)
         edited_message = tf.read().decode()
     return edited_message
