@@ -26,12 +26,12 @@ commands = {
 }
 
 prompts = {
-    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification.\
-        The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
-        If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
-        Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n",
-
-
+    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification. \
+    The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
+    If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
+    Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n",
+    "one_shot": "ask me questions about what you think the following code is doing until you feel like you know what i'm trying to do, \
+    then help me accomplish what it looks like i'm trying to do. Do you understand?",
     # Add more prompts here
 }
 
