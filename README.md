@@ -1,80 +1,82 @@
-# OpenAI Chat Completion Script
+# OpenAI API Interaction Tool
 
-This script interacts with the OpenAI API to generate text completions based on given prompts. It supports reading input from a file or the output of a command, and allows users to select a prompt to use as a basis for the generated completion. Users can also edit the message before sending it to the API and can resend the request with a different model if desired.
+This Python script serves as a command-line tool to interact with the OpenAI API to perform various tasks, such as generating commit messages, debugging code, and creating documentation.
 
-## Requirements
+## Table of Contents
 
-* Python 3.6 or newer
-* OpenAI Python library (`pip install openai`)
-* An OpenAI API key
+1. [Prerequisites](#prerequisites)
+2. [Configuration](#configuration)
+3. [Usage](#usage)
+    - [Input Methods](#input-methods)
+    - [Prompt Selection](#prompt-selection)
+    - [Editing Messages](#editing-messages)
+4. [Customization](#customization)
+    - [Commands](#commands)
+    - [Prompts](#prompts)
 
-## Functions
+## Prerequisites
 
-### get_input_or_file_input()
-
-This function parses command-line arguments to determine the source of the input content and returns the content and parsed arguments. It supports two mutually exclusive options:
-
-- `--file`: Provide a filename to use as input.
-- `--command-output`: Choose a command to run and use its output.
-
-Additionally, it accepts the following optional arguments:
-
-- `--model`: Model to use for the chat completion (default: value from the config file).
-- `--temperature`: Temperature to use for the chat completion (default: value from the config file).
-
-### select_prompt()
-
-This function displays a list of available prompts to the user and asks them to select one by entering its corresponding number. It returns the selected prompt.
-
-### edit_message_in_vim(message)
-
-This function allows the user to edit the message in a text editor (lvim) before sending it to the API. It takes the initial message as input and returns the edited message.
-
-### main()
-
-The main function coordinates the entire process:
-
-1. Get the input content and command-line arguments using `get_input_or_file_input()`.
-2. Select a prompt using `select_prompt()`.
-3. Display the message to be sent and ask the user for confirmation or editing.
-4. If the user chooses to edit the message, use `edit_message_in_vim()` to edit the message.
-5. Send the message to the OpenAI API and display the generated completion.
-6. Ask the user if they are satisfied with the completion or want to resend the request with a different model (e.g., gpt-4).
-7. If the user chooses to resend, update the model and repeat steps 5-6.
+- Python 3.x
+- `openai` Python library
+- An OpenAI API key
 
 ## Configuration
 
-The script requires a configuration file located at `~/.openai_config` with the following structure:
+Before using the tool, create a configuration file called `.openai_config` in your home directory with the following format:
 
 ```
 [DEFAULT]
 API_KEY = your_openai_api_key
-MODEL = default_model_to_use
-TEMPERATURE = default_temperature_to_use
+MODEL = default_model_name
+TEMPERATURE = default_temperature
 ```
+
+Replace `your_openai_api_key` with your actual OpenAI API key. Set `default_model_name` and `default_temperature` to your preferred default values (e.g., `text-davinci-002` and `0.8`).
 
 ## Usage
 
-To use the script, run it with the desired options:
+### Input Methods
 
-```bash
-./openai_chat_completion.py --file input.txt --model gpt-3 --temperature 0.7
+The tool provides two input methods:
+
+1. **File**: Use the `--file` option followed by the filename to read the input from a file.
+   ```
+   python gpt --file input.txt
+   ```
+
+2. **Command output**: Use the `--command-output` option followed by a command key to run a predefined command and use its output as input.
+   ```
+   python gpt --command-output git_commit
+   ```
+
+### Prompt Selection
+
+After providing input, the tool will display a list of available prompts. Enter the number corresponding to the desired prompt, and the tool will generate a message to be sent to the OpenAI API.
+
+### Editing Messages
+
+Before sending the message, you have the option to edit it. Enter `edit` when prompted, and the message will open in your default text editor. Save your changes and exit the editor to confirm the message.
+
+## Customization
+
+### Commands
+
+You can add custom commands to the `commands` dictionary in the script. Each key-value pair should have the command key as the key and the command as a list of strings. For example:
+
+```python
+commands = {
+    "git_commit": ['git', 'status', '-v'],
+    "my_custom_command": ['ls', '-la'],
+}
 ```
 
-or
+### Prompts
 
-```bash
-./openai_chat_completion.py --command-output git_commit
+You can add custom prompts to the `prompts` dictionary in the script. Each key-value pair should have the prompt key as the key and the prompt text as the value. For example:
+
+```python
+prompts = {
+    "commit_message_prompt": "Given the changes in the provided Git diff...",
+    "my_custom_prompt": "Write a brief summary of the following text...",
+}
 ```
-
-
-## Contributions
-Contributions, issues, and feature requests are welcome!
-
-## License
-This project is licensed under the terms of the MIT license. See the LICENSE file for details.
-
-Please note that you need to follow OpenAI's use case policy when using this script.
-
-## Disclaimer
-This script is provided as is, and you acknowledge that it may have potential bugs or limitations. By using this script, you acknowledge that you are responsible for compliance with any applicable local laws. The developers of this script are not liable for any damages or losses resulting from your use of the script.
