@@ -73,7 +73,8 @@ def main():
     content, args = get_input_or_file_input()
     prompt = select_prompt()
 
-    message_content = prompt + content
+    delimeter = "```\n"
+    message_content = prompt + delimeter + content + delimeter
 
     print("\nHere is the message to be sent:\n")
     print("\n#######################################################################\n")
