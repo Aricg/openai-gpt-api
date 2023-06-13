@@ -32,6 +32,8 @@ prompts = {
     Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n",
     "one_shot": "ask me questions about what you think the following code is doing until you feel like you know what i'm trying to do, \
     then help me accomplish what it looks like i'm trying to do. Do you understand?",
+    "document": "Given the following code, write documenation describing its functions. return the documentation in markdown format.",
+    "debug": "Imagine you're an expert developer reviewing the codebase below from a junior developer. Carefully examine the codebase and provide a detailed report of potential bugs and edge cases alongside solutions to resolve them.",
     # Add more prompts here
 }
 
@@ -98,8 +100,8 @@ def main():
         )
         print(chat_completion.choices[0].message.content)  # type: ignore
 
-        satisfied = input("\nAre you happy with the response? \"No\" to resend with gpt4 [y/n]: ")
-        if satisfied.lower() == 'y':
+        satisfied = input("\nx to exit, any other key to resend with gpt4 [x]: ")
+        if satisfied.lower() == 'x':
             break
         else:
             print("Resending the request with model 'gpt-4'.")

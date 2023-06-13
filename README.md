@@ -1,10 +1,6 @@
-# OpenAI Chat Commit Helper
+# OpenAI Chat Completion Script
 
-## Overview
-
-This Python script utilizes OpenAI's GPT-3 (or GPT-4) language model to generate git commit messages based on provided user instructions and optionally, the standard output and git status information. 
-
-It's a command line tool that interacts with the user, gathering information to feed into the AI model and then displaying the generated output. The user can then approve this output or request another try. If the initial output isn't satisfactory, the script can resend the request using the GPT-4 model.
+This script interacts with the OpenAI API to generate text completions based on given prompts. It supports reading input from a file or the output of a command, and allows users to select a prompt to use as a basis for the generated completion. Users can also edit the message before sending it to the API and can resend the request with a different model if desired.
 
 ## Requirements
 
@@ -12,45 +8,65 @@ It's a command line tool that interacts with the user, gathering information to 
 * OpenAI Python library (`pip install openai`)
 * An OpenAI API key
 
-## Setup
+## Functions
 
-1. Clone this repository.
-2. Install the OpenAI Python library if not already installed: `pip install openai`
-3. Set your OpenAI API key in a `.openai_config` file in the same directory as the script. If the file doesn't exist, the script will create a default one on the first run. The `.openai_config` file should follow this format:
+### get_input_or_file_input()
 
-    ```
-    [DEFAULT]
-    API_KEY = sk-your-api-key
-    MODEL = gpt-3.5-turbo
-    TEMPERATURE = 0.5
-    ```
+This function parses command-line arguments to determine the source of the input content and returns the content and parsed arguments. It supports two mutually exclusive options:
+
+- `--file`: Provide a filename to use as input.
+- `--command-output`: Choose a command to run and use its output.
+
+Additionally, it accepts the following optional arguments:
+
+- `--model`: Model to use for the chat completion (default: value from the config file).
+- `--temperature`: Temperature to use for the chat completion (default: value from the config file).
+
+### select_prompt()
+
+This function displays a list of available prompts to the user and asks them to select one by entering its corresponding number. It returns the selected prompt.
+
+### edit_message_in_vim(message)
+
+This function allows the user to edit the message in a text editor (lvim) before sending it to the API. It takes the initial message as input and returns the edited message.
+
+### main()
+
+The main function coordinates the entire process:
+
+1. Get the input content and command-line arguments using `get_input_or_file_input()`.
+2. Select a prompt using `select_prompt()`.
+3. Display the message to be sent and ask the user for confirmation or editing.
+4. If the user chooses to edit the message, use `edit_message_in_vim()` to edit the message.
+5. Send the message to the OpenAI API and display the generated completion.
+6. Ask the user if they are satisfied with the completion or want to resend the request with a different model (e.g., gpt-4).
+7. If the user chooses to resend, update the model and repeat steps 5-6.
+
+## Configuration
+
+The script requires a configuration file located at `~/.openai_config` with the following structure:
+
+```
+[DEFAULT]
+API_KEY = your_openai_api_key
+MODEL = default_model_to_use
+TEMPERATURE = default_temperature_to_use
+```
 
 ## Usage
 
-Clone this repository.
+To use the script, run it with the desired options:
 
-Install the OpenAI Python library if not already installed: pip install openai
+```bash
+./openai_chat_completion.py --file input.txt --model gpt-3 --temperature 0.7
+```
 
-Set your OpenAI API key in a .openai_config file in the same directory as the script. If the file doesn't exist, the script will create a default one on the first run. The .openai_config file should follow this format:
-```
-[DEFAULT]
-API_KEY = sk-your-api-key
-MODEL = gpt-3.5-turbo
-TEMPERATURE = 0.5
-```
-Usage
-You can run the script from the command line as follows:
+or
 
+```bash
+./openai_chat_completion.py --command-output git_commit
 ```
-python script_name.py [--include-stdout] [--aicommit] [--model MODEL] [--temperature TEMPERATURE]
---include-stdout: If this flag is provided, the script will include the standard output in the chat completion.
---aicommit: If this flag is provided, the script will create a git commit message, including the output of git status -v.
---model: The OpenAI model to use for the chat completion. Defaults to the value in the .openai_config file.
---temperature: The temperature to use for the chat completion. Defaults to the value in the .openai_config file.
-```
-After running the script, you'll be prompted to enter any additional instructions for the AI. The script will then display the message to be sent to the AI for confirmation. You can choose to send the message, edit it, or cancel the operation.
 
-Once the message is sent and a response received, you'll be asked if you're happy with the response. If you're not, the script will resend the request with the GPT-4 model.
 
 ## Contributions
 Contributions, issues, and feature requests are welcome!
@@ -62,4 +78,3 @@ Please note that you need to follow OpenAI's use case policy when using this scr
 
 ## Disclaimer
 This script is provided as is, and you acknowledge that it may have potential bugs or limitations. By using this script, you acknowledge that you are responsible for compliance with any applicable local laws. The developers of this script are not liable for any damages or losses resulting from your use of the script.
-
