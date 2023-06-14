@@ -40,15 +40,17 @@ prompts = {
 def get_input_or_file_input():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--file", help="Provide a filename to use as input")
+    group.add_argument("--file", nargs='+', help="Provide one or multiple filenames to use as input")
     group.add_argument("--command-output", choices=list(commands.keys()), help="Choose a command to run and use its output")
     parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
     parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
     args = parser.parse_args()
 
     if args.file:
-        with open(args.file, "r") as file:
-            content = file.read()
+        content = ""
+        for file_name in args.file:
+            with open(file_name, "r") as file:
+                content += f"### {file_name}\n\n```\n{file.read()}\n```\n\n"
     else:  # command output
         content = subprocess.check_output(commands[args.command_output]).decode()
 
@@ -75,8 +77,7 @@ def main():
     content, args = get_input_or_file_input()
     prompt = select_prompt()
 
-    delimeter = "```\n"
-    message_content = prompt + delimeter + content + delimeter
+    message_content = prompt + content
 
     print("\nHere is the message to be sent:\n")
     print("\n#######################################################################\n")
@@ -94,7 +95,7 @@ def main():
 
     while True:
         chat_completion = openai.ChatCompletion.create(
-            model=args.model, 
+            model=args.model,
             messages=[{"role": "user", "content": message_content}],
             temperature=args.temperature
         )
@@ -109,4 +110,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
