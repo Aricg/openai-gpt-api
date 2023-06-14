@@ -39,22 +39,60 @@ prompts = read_prompts()
 
 def get_input_or_file_input():
     parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group()
     group.add_argument("--file", nargs='+', help="Provide one or multiple filenames to use as input")
     group.add_argument("--command-output", choices=list(commands.keys()), help="Choose a command to run and use its output")
     parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
     parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
+    parser.add_argument("--list-saved", action="store_true", help="List all saved input-output files and exit")
     args = parser.parse_args()
+
+    if args.list_saved:
+        selected_file = list_saved_files()
+        if selected_file is not None:
+            args.file = [os.path.join(gpt_dir, selected_file)]  # set the selected file as the --file argument
+        else:
+            sys.exit()
 
     if args.file:
         content = ""
         for file_name in args.file:
             with open(file_name, "r") as file:
                 content += f"### {file_name}\n\n```\n{file.read()}\n```\n\n"
-    else:  # command output
+    elif args.command_output:
         content = subprocess.check_output(commands[args.command_output]).decode()
+    else:
+        content = ""
 
     return content, args
+
+
+
+def list_saved_files():
+    if not os.path.exists(gpt_dir):
+        print("No saved files found.")
+        return
+
+    saved_files = os.listdir(gpt_dir)
+    input_files = [f for f in saved_files if f.endswith("_input.txt")]
+    input_files.sort()
+
+    if not input_files:
+        print("No saved input files found.")
+        return
+
+    print("Saved files:")
+    for i, input_file in enumerate(input_files, start=1):
+        output_file = input_file.replace("_input.txt", "_output.txt")
+        print(f"{i}. {input_file} -> {output_file}")
+
+    selection = int(input("Enter the number of your selection: ")) - 1
+    if selection < 0 or selection >= len(input_files):
+        print("Invalid selection.")
+        return
+
+    selected_input_file = input_files[selection]
+    return selected_input_file  # returning the selected file name
 
 def select_prompt():
     prompt_names = list(prompts.keys())
@@ -92,6 +130,11 @@ def save_input_output(input_content, output_content):
 
 def main():
     content, args = get_input_or_file_input()
+
+    if content is None:
+        print("No input provided.")
+        sys.exit()
+
     prompt = select_prompt()
 
     message_content = prompt + content
@@ -101,16 +144,24 @@ def main():
     print(message_content)
     print("\n#######################################################################\n")
 
-    confirm = input("\nDo you want to send this message? [y/n/edit]: ")
-    if confirm.lower() == 'edit':
-        message_content = edit_message_in_vim(message_content)
-        confirm = input("\nDo you want to send this message? [y/n]: ")
+    while True:  # A loop so the user can choose to edit multiple times.
+        confirm = input("\nDo you want to send this message? [y/n/edit]: ")
+        if confirm.lower() == 'edit':
+            message_content = edit_message_in_vim(message_content)
+            continue  # Skip the rest of the loop and start from the beginning.
+        elif confirm.lower() == 'n':
+            print("Operation cancelled.")
+            sys.exit()
 
-    if confirm.lower() != 'y':
-        print("Operation cancelled.")
-        sys.exit()
+        model_choice = input("\nDo you want to use GPT-3 or GPT-4? [3/4]: ")
+        if model_choice == '4':
+            args.model = 'gpt-4'
+        elif model_choice == '3':
+            args.model = 'gpt-3'
+        else:
+            print("Invalid model selection. Defaulting to GPT-3.")
+            args.model = 'gpt-3'
 
-    while True:
         chat_completion = openai.ChatCompletion.create(
             model=args.model,
             messages=[{"role": "user", "content": message_content}],
@@ -121,12 +172,9 @@ def main():
 
         save_input_output(message_content, output_content)
 
-        satisfied = input("\nx to exit, any other key to resend with gpt4 [x]: ")
+        satisfied = input("\nx to exit, any other key to continue [x]: ")
         if satisfied.lower() == 'x':
             break
-        else:
-            print("Resending the request with model 'gpt-4'.")
-            args.model = 'gpt-4'
 
 if __name__ == "__main__":
     main()
