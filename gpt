@@ -8,9 +8,11 @@ import os
 import configparser
 import subprocess
 from tempfile import NamedTemporaryFile
+import time
 
 home_dir = os.path.expanduser("~")
 dotfile_path = os.path.join(home_dir, '.openai_config')
+gpt_dir = os.path.join(home_dir, '.gpt')
 
 config = configparser.ConfigParser()
 if os.path.exists(dotfile_path):
@@ -71,6 +73,23 @@ def edit_message_in_vim(message):
         edited_message = tf.read().decode()
     return edited_message
 
+def save_input_output(input_content, output_content):
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    input_filename = f"{timestamp}_input.txt"
+    output_filename = f"{timestamp}_output.txt"
+
+    if not os.path.exists(gpt_dir):
+        os.makedirs(gpt_dir)
+
+    with open(os.path.join(gpt_dir, input_filename), "w") as input_file:
+        input_file.write(input_content)
+
+    with open(os.path.join(gpt_dir, output_filename), "w") as output_file:
+        output_file.write(output_content)
+
+    print(f"Input saved to: {os.path.join(gpt_dir, input_filename)}")
+    print(f"Output saved to: {os.path.join(gpt_dir, output_filename)}")
+
 def main():
     content, args = get_input_or_file_input()
     prompt = select_prompt()
@@ -97,7 +116,10 @@ def main():
             messages=[{"role": "user", "content": message_content}],
             temperature=args.temperature
         )
-        print(chat_completion.choices[0].message.content)  # type: ignore
+        output_content = chat_completion.choices[0].message.content  # type: ignore
+        print(output_content)
+
+        save_input_output(message_content, output_content)
 
         satisfied = input("\nx to exit, any other key to resend with gpt4 [x]: ")
         if satisfied.lower() == 'x':
@@ -108,3 +130,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
