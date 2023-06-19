@@ -58,7 +58,10 @@ def get_input_or_file_input():
         content = ""
         for file_name in args.file:
             with open(file_name, "r") as file:
-                content += f"### {file_name}\n\n```\n{file.read()}\n```\n\n"
+                file_content = file.read()
+                content += f"### {file_name}\n\n```\n{file_content}\n```\n\n"
+
+    
     elif args.command_output:
         content = subprocess.check_output(commands[args.command_output]).decode()
     else:
