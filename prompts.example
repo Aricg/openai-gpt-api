@@ -1,12 +1,13 @@
 {
-    "commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification. \
+	"commit_message_prompt": "Given the changes in the provided Git diff, generate a commit message following the Conventional Commits specification. \
     The commit message should start with a type, optionally followed by a scope, and then a concise summary in the imperative mood of the changes made. \
     If necessary, follow this with a more detailed explanation of what changes were made and why in the body section. \
     Remember to keep the summary under 50 characters and the body under 100 characters per line if included.\n",
-    "one_shot": "ask me questions about what you think the following code is doing until you feel like you know what i'm trying to do, \
+	"one_shot": "ask me questions about what you think the following code is doing until you feel like you know what i'm trying to do, \
     then help me accomplish what it looks like i'm trying to do. Do you understand?",
-    "document": "Given the following code, write documenation describing its functions and usage. return the documentation in markdown format. Provide awell structured index to guide users, Documentation is multifaceted. It includes tutorials, how-to guides, reference guides, and explanations or discussions. Each serves a different purpose and requires a different approach. Mixing these categories can lead to a decline in overall quality.",
-    "debug": "Imagine you're an expert developer reviewing the codebase below from a junior developer. Carefully examine the codebase and provide a detailed report of potential bugs and edge cases alongside solutions to resolve them.",
-    # Add more prompts here
-}
+	"document": "Given the following code, write documenation describing its functions and usage. return the documentation in markdown format. Provide awell structured index to guide users, Documentation is multifaceted. It includes tutorials, how-to guides, reference guides, and explanations or discussions. Each serves a different purpose and requires a different approach. Mixing these categories can lead to a decline in overall quality.",
+	"debug": "Imagine you're an expert developer reviewing the codebase below from a junior developer. Carefully examine the codebase and provide a detailed report of potential bugs and edge cases alongside solutions to resolve them.",
+	"cover_letter": "below a resume, following that is a job description. your role is to help write a cover letter for the job using the strengths found in the resume.",
 
+	# Add more prompts here
+}
