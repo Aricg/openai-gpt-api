@@ -37,7 +37,6 @@ def read_prompts():
 
 prompts = read_prompts()
 
-
 def get_input_or_file_input():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
@@ -46,7 +45,10 @@ def get_input_or_file_input():
     parser.add_argument("--prompt", type=int, help="Select a prompt by index")
     parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
     parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
+    parser.add_argument("--confirm-send", choices=['y', 'n'], help="Automatically confirm sending the message without prompt")
+    parser.add_argument("--model-selection", choices=['3', '4'], help="Choose the GPT model to use without prompt")
     parser.add_argument("--list-saved", action="store_true", help="List all saved input-output files and exit")
+    parser.add_argument("--output", help="Provide a custom path for saving the output")
     args = parser.parse_args()
 
     if args.list_saved:
@@ -116,10 +118,14 @@ def edit_message_in_vim(message):
         edited_message = tf.read().decode()
     return edited_message
 
-def save_input_output(input_content, output_content):
+def save_input_output(input_content, output_content, output_path=None):
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     input_filename = f"{timestamp}_input.txt"
-    output_filename = f"{timestamp}_output.txt"
+
+    if output_path is None:  # If no custom output path is provided, use the default
+        output_filename = f"{timestamp}_output.txt"
+    else:
+        output_filename = output_path
 
     if not os.path.exists(gpt_dir):
         os.makedirs(gpt_dir)
@@ -127,11 +133,19 @@ def save_input_output(input_content, output_content):
     with open(os.path.join(gpt_dir, input_filename), "w") as input_file:
         input_file.write(input_content)
 
-    with open(os.path.join(gpt_dir, output_filename), "w") as output_file:
-        output_file.write(output_content)
+    # If a custom output path is provided, just write to it
+    # Otherwise, write to the default location
+    if output_path is not None:
+        with open(output_filename, "w") as output_file:
+            output_file.write(output_content)
+        print(f"Output saved to: {output_filename}")
+    else:
+        with open(os.path.join(gpt_dir, output_filename), "w") as output_file:
+            output_file.write(output_content)
+        print(f"Output saved to: {os.path.join(gpt_dir, output_filename)}")
 
     print(f"Input saved to: {os.path.join(gpt_dir, input_filename)}")
-    print(f"Output saved to: {os.path.join(gpt_dir, output_filename)}")
+
 
 def main():
     content, args = get_input_or_file_input()
@@ -149,11 +163,6 @@ def main():
     else:
         prompt = select_prompt()
 
-    # Remaining code
-
-
-
-
     message_content = prompt + content
 
     print("\nHere is the message to be sent:\n")
@@ -161,8 +170,13 @@ def main():
     print(message_content)
     print("\n#######################################################################\n")
 
+
     while True:  # A loop so the user can choose to edit multiple times.
-        confirm = input("\nDo you want to send this message? [y/n/edit]: ")
+        if args.confirm_send is None:
+            confirm = input("\nDo you want to send this message? [y/n/edit]: ")
+        else:
+            confirm = args.confirm_send
+
         if confirm.lower() == 'edit':
             message_content = edit_message_in_vim(message_content)
             continue  # Skip the rest of the loop and start from the beginning.
@@ -170,7 +184,11 @@ def main():
             print("Operation cancelled.")
             sys.exit()
 
-        model_choice = input("\nDo you want to use GPT-3 or GPT-4? [3/4]: ")
+        if args.model_selection is None:
+            model_choice = input("\nDo you want to use GPT-3 or GPT-4? [3/4]: ")
+        else:
+            model_choice = args.model_selection
+
         if model_choice == '4':
             args.model = 'gpt-4'
         elif model_choice == '3':
@@ -187,7 +205,7 @@ def main():
         output_content = chat_completion.choices[0].message.content  # type: ignore
         print(output_content)
 
-        save_input_output(message_content, output_content)
+        save_input_output(message_content, output_content, args.output)
 
         satisfied = input("\nx to exit, any other key to continue [x]: ")
         if satisfied.lower() == 'x':
