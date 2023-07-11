@@ -1,47 +1,57 @@
-# GPT OpenAI Chat Completion CLI
+# GPT Python Script Documentation
 
-This Python script provides a command-line interface (CLI) to interact with the OpenAI GPT models (GPT-3 and GPT-4) for chat completion tasks. It allows users to provide input via text files or command output and select a predefined prompt. The script also supports editing the message using a text editor (Vim) and saving input-output pairs for future reference.
+This script interacts with OpenAI's GPT-3 or GPT-4 models to generate text completions based on given prompts. It provides options to use pre-defined prompts, files, or command outputs as input. The generated completion and input can be saved for future reference.
 
 ## Table of Contents
 
-1. [Requirements](#requirements)
-2. [Configuration](#configuration)
-3. [Usage](#usage)
-4. [Functions](#functions)
+1. [Installation and Configuration](#installation-and-configuration)
+2. [Usage](#usage)
+3. [Command Line Arguments](#command-line-arguments)
+4. [Adding Custom Prompts](#adding-custom-prompts)
+5. [Adding Commands](#adding-commands)
 
-## Requirements
+## Installation and Configuration
 
-- Python 3.x
-- OpenAI Python library
+Before running the script, ensure that you have Python and the `openai` Python package installed.
 
-## Configuration
-
-Before using the script, an OpenAI API key and other settings must be configured in a file named `.openai_config` located in the user's home directory. The file should contain the following information:
+The script requires a configuration file named `.openai_config` located in your home directory. This file should contain your OpenAI API key, the default model, and temperature in the following format:
 
 ```
 [DEFAULT]
 API_KEY = your_openai_api_key
-MODEL = gpt-3
-TEMPERATURE = 0.8
+MODEL = model_name
+TEMPERATURE = temperature_value
 ```
-
-Replace `your_openai_api_key` with your actual OpenAI API key.
 
 ## Usage
 
-The script can be run from the command line using the following syntax:
+To execute the script, navigate to the directory containing the script and run:
 
 ```
-python gpt_openai_chat_completion.py [options]
+python gpt.py
 ```
 
-Options:
+## Command Line Arguments
 
-- `--file`: Provide one or multiple filenames to use as input
-- `--command-output`: Choose a command to run and use its output as input
-- `--model`: Model to use for the chat completion (default: gpt-3)
-- `--temperature`: Temperature to use for the chat completion (default: 0.8)
-- `--list-saved`: List all saved input-output files and exit
+The script supports several command line arguments:
+
+- `--file`: Provide one or multiple filenames to use as input.
+- `--command-output`: Choose a command to run and use its output.
+- `--prompt`: Select a prompt by index.
+- `--model`: Model to use for the chat completion.
+- `--temperature`: Temperature to use for the chat completion.
+- `--confirm-send`: Automatically confirm sending the message without prompt.
+- `--model-selection`: Choose the GPT model to use without prompt.
+- `--list-saved`: List all saved input-output files and exit.
+- `--output`: Provide a custom path for saving the output.
+
+## Adding Custom Prompts
+
+You can add custom prompts by editing the `prompts.example` file in your home directory. The prompts should be in a Python dictionary format, with the keys being the prompt names and the values being the prompt texts.
+
+## Adding Commands
+
+You can add commands to be used with the `--command-output` argument by editing the `commands` dictionary in the script. The keys should be the command names and the values should be the command to run in a list format.
 
 ## Functions
 
@@ -65,5 +75,18 @@ The script contains several functions that handle different aspects of the CLI:
 6. The script sends the message to the OpenAI API and receives the chat completion output.
 7. The input and output content are saved to timestamped files in the `.gpt` directory.
 8. The user can choose to exit or continue with another input.
+
+## Prompts
+```
+./gpt
+Select a prompt:
+0. commit_message_prompt
+1. one_shot
+2. document
+3. debug
+4. cover_letter
+5. job_classifier
+6. job_decider
+```
 
 
