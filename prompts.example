@@ -8,7 +8,7 @@
 	"document": "Given the following code, write documenation describing its functions and usage. return the documentation in markdown format. Provide awell structured index to guide users, Documentation is multifaceted. It includes tutorials, how-to guides, reference guides, and explanations or discussions. Each serves a different purpose and requires a different approach. Mixing these categories can lead to a decline in overall quality.",
 	"debug": "Imagine you're an expert developer reviewing the codebase below from a junior developer. Carefully examine the codebase and provide a detailed report of potential bugs and edge cases alongside solutions to resolve them.",
 	"cover_letter": "below a resume, following that is a job description. your role is to help write a cover letter for the job using the strengths found in the resume. let's keep the tone neutral and the language simple and direct.",
-	"job_classifier" :"The provided text is a job description taken from linkedin, please classify it into the following fields: 'Job Title' 'Location' 'Remote on site or hybrid' 'Salary Range null if not given' 'and bullet points that cover the relevant Job Description & Required Skills & Experience' ouput as yaml"
+	"job_classifier" :"The provided text is a job description taken from linkedin, please classify it into the following fields: 'Job Title' 'Location' 'Remote on site or hybrid' 'Salary Range null if not given' 'and bullet points that cover the relevant Job Description & Required Skills & Experience' discard any information that doesn't fit into one of these categories. ouput as yaml"
 
 	# Add more prompts here
 }

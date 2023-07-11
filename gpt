@@ -37,11 +37,13 @@ def read_prompts():
 
 prompts = read_prompts()
 
+
 def get_input_or_file_input():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--file", nargs='+', help="Provide one or multiple filenames to use as input")
     group.add_argument("--command-output", choices=list(commands.keys()), help="Choose a command to run and use its output")
+    parser.add_argument("--prompt", type=int, help="Select a prompt by index")
     parser.add_argument("--model", help="model to use for the chat completion", default=config['DEFAULT']['MODEL'])
     parser.add_argument("--temperature", help="temperature to use for the chat completion", default=config['DEFAULT']['TEMPERATURE'], type=float)
     parser.add_argument("--list-saved", action="store_true", help="List all saved input-output files and exit")
@@ -138,7 +140,19 @@ def main():
         print("No input provided.")
         sys.exit()
 
-    prompt = select_prompt()
+    if args.prompt is not None:
+        prompt_names = list(prompts.keys())
+        if args.prompt < 0 or args.prompt >= len(prompt_names):
+            print("Invalid prompt selection.")
+            sys.exit()
+        prompt = prompts[prompt_names[args.prompt]]
+    else:
+        prompt = select_prompt()
+
+    # Remaining code
+
+
+
 
     message_content = prompt + content
 
