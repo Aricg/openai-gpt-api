@@ -207,10 +207,13 @@ def main():
 
         save_input_output(message_content, output_content, args.output)
 
-        satisfied = input("\nx to exit, any other key to continue [x]: ")
-        if satisfied.lower() == 'x':
+        if args.confirm_send:
             break
+        else:
+            satisfied = input("\nx to exit, any other key to continue [x]: ")
+            if satisfied.lower() == 'x':
+                break
+    
 
 if __name__ == "__main__":
     main()
-

@@ -1,0 +1,49 @@
+#!/usr/bin/bash
+#
+myskills="../aricg.github.io/assets/Pandoc/skills-positions-summary.txt"
+
+while IFS= read -r file; do
+	# Process each file here
+	echo "Processing file: $file"
+
+	echo "CLASSIFY###########################################"
+	#Classify
+	if [ ! -e "${file%.txt}.yaml" ]; then
+		gpt --file "$file" \
+			--output "${file%.txt}.yaml" \
+			--prompt=5 \
+			--model-selection=3 \
+			--confirm-send=y
+	else
+		echo "Already classified"
+	fi
+	#Decide
+	echo "DECIDE###########################################"
+	if [ ! -e "${file%.txt}.ok" ]; then
+		gpt --file "${file%.txt}.yaml" "$myskills" \
+		--output "${file%.txt}.ok" \
+			--prompt=6 \
+			--model-selection=4 \
+			--confirm-send=y
+	else
+		echo "Already decided"
+	fi
+
+	#review
+	echo "REVIEW###########################################"
+	if [ -f "${file%.txt}.ok" ]; then
+		content=$(<"${file%.txt}.ok")
+
+		if [ "$content" = "1" ]; then
+			echo "this job has been rejected."
+
+      else 
+			echo "############ Approved, please review ##############"
+      cat "${file%.txt}.ok"
+			echo "############ ##############"
+		fi
+	fi
+
+done \
+	< <(find jobs -type f -name "*.txt")
+
