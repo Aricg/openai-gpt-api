@@ -4,46 +4,52 @@ myskills="../aricg.github.io/assets/Pandoc/skills-positions-summary.txt"
 
 while IFS= read -r file; do
 	# Process each file here
-	echo "Processing file: $file"
+	#
+	# If there is a '.done' file, skip this iteration
+	if [ -e "${file%.txt}.done" ]; then
+		echo "Already applied for: $file"
+		continue
+	fi
 
-	echo "CLASSIFY###########################################"
+	echo "CLASSIFY#####"
 	#Classify
 	if [ ! -e "${file%.txt}.yaml" ]; then
 		gpt --file "$file" \
 			--output "${file%.txt}.yaml" \
 			--prompt=5 \
 			--model-selection=3 \
-			--confirm-send=y
+			--confirm-send=y >/dev/null 2>&1
 	else
 		echo "Already classified"
 	fi
 	#Decide
-	echo "DECIDE###########################################"
+	echo "DECIDE#######"
 	if [ ! -e "${file%.txt}.ok" ]; then
-		gpt --file "${file%.txt}.yaml" "$myskills" \
-		--output "${file%.txt}.ok" \
+		gpt --file "$myskills" "${file%.txt}.yaml" \
+			--output "${file%.txt}.ok" \
 			--prompt=6 \
 			--model-selection=4 \
-			--confirm-send=y
+			--confirm-send=y >/dev/null 2>&1
 	else
 		echo "Already decided"
 	fi
 
 	#review
-	echo "REVIEW###########################################"
+	echo "REVIEW#######"
 	if [ -f "${file%.txt}.ok" ]; then
 		content=$(<"${file%.txt}.ok")
 
 		if [ "$content" = "1" ]; then
 			echo "this job has been rejected."
+			echo "# # # # # $file"
 
-      else 
-			echo "############ Approved, please review ##############"
-      cat "${file%.txt}.ok"
+		else
+			echo "# Approved, please review #"
+			echo "# # # $file"
+			cat "${file%.txt}.ok"
 			echo "############ ##############"
 		fi
 	fi
 
 done \
 	< <(find jobs -type f -name "*.txt")
-
