@@ -30,6 +30,7 @@ def on_data(data: EventData):
     print(
         '[ON_DATA]',
         data.title,
+        data.location,
         data.company,
         data.company_link,
         data.date,
@@ -50,6 +51,9 @@ def on_data(data: EventData):
         with open(job_file, 'w') as f:
             # Write the link as the first line
             f.write(f"Job Link: {data.link}\n")
+            f.write(f"title: {data.title}\n")
+            f.write(f"company: {data.company}\n")
+            f.write(f"location: {data.location}\n")
             f.write("\n")
             f.write("Job Description:\n")
             f.write(data.description)
@@ -95,7 +99,7 @@ def main(limit):
                 limit=limit,
                 filters=QueryFilters(
                     relevance=RelevanceFilters.RECENT,
-                    time=TimeFilters.DAY, #MONTH,  # DAY
+                    time=TimeFilters.DAY, #MONTH, #MONTH,  # DAY
                     on_site_or_remote=[
                         OnSiteOrRemoteFilters.REMOTE,
                         OnSiteOrRemoteFilters.HYBRID,
