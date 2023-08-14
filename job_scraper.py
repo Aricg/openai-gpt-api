@@ -99,7 +99,7 @@ def main(limit):
                 limit=limit,
                 filters=QueryFilters(
                     relevance=RelevanceFilters.RECENT,
-                    time=TimeFilters.DAY, #MONTH,
+                    time=TimeFilters.MONTH, #DAY, #MONTH,
                     on_site_or_remote=[
                         OnSiteOrRemoteFilters.REMOTE,
                         OnSiteOrRemoteFilters.HYBRID,
